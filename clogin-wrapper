@@ -1,0 +1,73 @@
+#!/bin/bash
+usage() {
+    echo "Usage: $0 [-c TEXT] [-i TEXT] [-o TEXT] [-s TEXT] [-t 30-1200]" 1>&2
+    echo "-c path to text file containing commands to run" 1>&2
+    echo "-i path to text file containing the IPs" 1>&2
+    echo "-o path to directory for output files. Output files with be ip.output" 1>&2
+    echo "-s path to clogin script if not in same directory as this script" 1>&2
+    echo "-t timeout in seconds. This is if clogin can't properly logout of the switch default is 180(3 mins)" 1>&2
+    echo "-v Verbose mode"
+    echo "Example: $0 -c cmds-to-run.txt -i ips.txt -o switch_outputs -s /path/to/clogin -t 300" 1>&2
+    exit 1
+}
+
+vecho() {
+    if $verbose; then
+        echo $1
+    fi
+}
+
+#default location of clogin file. Same directory as this script
+clogin=./clogin
+#default timeout is 3 mins. This is used if clogin fails to exit correctly
+timeout=180
+verbose=false
+
+while getopts ":c:i:o:s:t:v" o; do
+    case "${o}" in
+        c)
+            cmds=${OPTARG}
+            ;;
+        i)
+            ips=${OPTARG}
+            ;;
+        o)
+            output=${OPTARG}
+            ;;
+        s)
+            clogin=${OPTARG}
+            ;;
+        t)
+            timeout=${OPTARG}
+            [ "$timeout" -ge 30 -a "$timeout" -le 1200 ] || usage
+            ;;
+        v)
+            verbose=true
+            echo "Verbose mode on"
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ -z "${cmds}" ] || [ -z "${ips}" ]; then
+    usage
+fi
+
+#If output directory is specified check to see if it ends with a / if not add one
+if [ ! -z "${output}" ]; then
+    vecho "output defined"
+    if [[ ${output} != */ ]]; then
+        output+=/
+    fi
+fi
+
+while read line; do
+    vecho "Running commands on $line"
+    ( cmdpid=$BASHPID; (sleep ${timeout}; kill $cmdpid 2>/dev/null ) & exec /bin/sh -c "${clogin} -x ${cmds} $line" >> ${output}$line.output)
+    vecho "Done"
+done <${ips}
+
+exit 0
