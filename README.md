@@ -1,8 +1,11 @@
-#clogin-wrapper
+# clogin-wrapper
 
 `clogin-wrapper` is a wrapper for the builtin `clogin` script included in the Rancid tools. This script loops through a file of IPs and runs the individual built `clogin` command. The script has an auto timeout of 3 minutes, incase the `clogin` scripts gets stuck. I came across this on IBM switches. If the running config hasn't been saved, the IBMs will come up with a warning when trying to close the connection to the switch
-```WARNING: The running-config is different to startup-config.
-Confirm operation without saving running-config to startup-config (y/n) ?```
+
+```
+WARNING: The running-config is different to startup-config.
+Confirm operation without saving running-config to startup-config (y/n) ?
+```
 This warning breaks `clogin`. Now there are ways to go fix that with `clogin` but that could also cause other issues. Maybe you are just doing show commands and don't know if you should save the config. It's just better to have `clogin` timeout if it gets stuck.
 
 # Setup
@@ -76,7 +79,7 @@ Then your `clogin-wrapper` command would look like this
 All of the output files will be in the directory `switch_outputs`. The output files are named like `ip.output`. Now you can look in the `switch_outputs` directory and see all of the output files.
 
 ```
-[netops-jonathansmith@rancid ~]$ ls switch_outputs/
+[jonathansmith@rancid ~]$ ls switch_outputs/
 10.0.99.47.output
 10.0.99.51.output
 10.0.99.52.output
@@ -98,7 +101,7 @@ It's a lot easier to just use the rancid clogin script. The location of rancid's
 Here is the output of the `clogin-wrapper.sh` script, you can see all of the different options.
 
 ```
-[netops-jonathansmith@rancid ~]$ ./clogin-wrapper.sh 
+[jonathansmith@rancid ~]$ ./clogin-wrapper.sh 
 Usage: ./clogin-wrapper.sh [-c TEXT] [-i TEXT] [-o TEXT] [-s TEXT] [-t 30-1200]
 -c path to text file containing commands to run
 -i path to text file containing the IPs
@@ -115,7 +118,7 @@ Example: ./clogin-wrapper.sh -c cmds-to-run.txt -i ips.txt -o switch_outputs -s 
 There are several different ways you can monitor the progress of the script. The best way is to just see how many output files have been made `ls switch_outputs/ | wc -l`. This will return how many files are in the `switch_output` directory. If you want to see where the script is at run `ps -ef`. That will return a slimmed down list of the current processes that are running, you'll be able to see what switch the script is running on.
 
 ```
-[netops-jonathansmith@rancid test]$ ps -ef
+[jonathansmith@rancid test]$ ps -ef
 UID        PID  PPID  C STIME TTY          TIME CMD
 jonathansmith   3932  4309  0 15:06 pts/0    00:00:00 /bin/sh /admin/jonathansmith/test/clogin-wrapper.sh -c cmds.txt -i ips.txt -o switch_ou
 jonathansmith   3933  3932  0 15:06 pts/0    00:00:00 /usr/bin/expect -- ../clogin -x cmds 10.0.99.54
